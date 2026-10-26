@@ -1,63 +1,66 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="app-header bg-dark text-white d-flex justify-content-between align-items-center">
-    <span>👑 DASHBOARD PENGURUS</span>
-    <a href="/logout" class="btn btn-sm btn-outline-light">Log Keluar</a>
+<div class="site-header">
+    <div class="site-title">
+        <span class="eyebrow">Dashboard</span>
+        <h1 class="header-name">Pengurus</h1>
+    </div>
+    <a href="/logout" class="btn btn-outline btn-sm">Log keluar</a>
 </div>
 
-<div class="p-3">
-    <!-- Sales Metrics Summary -->
-    <div class="row g-2 mb-4">
-        <div class="col-6">
-            <div class="card bg-primary text-white p-3 text-center border-0 shadow-sm">
-                <small class="text-white-50">Jumlah Jualan</small>
-                <h5 class="fw-bold mb-0">RM {{ "%.2f"|format(total_sales) }}</h5>
-            </div>
+<div class="page-body">
+    <div class="stats-grid">
+        <div class="stat-card accent">
+            <span class="stat-label">Jumlah jualan</span>
+            <span class="stat-value">RM {{ "%.2f"|format(total_sales) }}</span>
         </div>
-        <div class="col-6">
-            <div class="card bg-success text-white p-3 text-center border-0 shadow-sm">
-                <small class="text-white-50">Pesanan Selesai</small>
-                <h5 class="fw-bold mb-0">{{ total_orders }}</h5>
-            </div>
+        <div class="stat-card success">
+            <span class="stat-label">Pesanan selesai</span>
+            <span class="stat-value">{{ total_orders }}</span>
         </div>
     </div>
 
-    <!-- Add New Drink Form -->
-    <div class="card p-3 mb-4 shadow-sm border-0">
-        <h6 class="fw-bold mb-3">Tambah Minuman Baru</h6>
-        <form action="/admin/menu/add" method="POST" class="row g-2">
-            <div class="col-7">
-                <input type="text" name="nama_minuman" class="form-control form-control-sm" placeholder="Nama Minuman" required>
+    <div class="panel-card">
+        <div class="section-heading" style="margin-bottom: 12px;">
+            <h3>Tambah minuman baru</h3>
+        </div>
+        <form action="/admin/menu/add" method="POST" class="mini-form">
+            <div class="field" style="margin: 0;">
+                <input type="text" name="nama_minuman" class="form-control" placeholder="Nama minuman" required>
             </div>
-            <div class="col-3">
-                <input type="number" step="0.10" name="harga" class="form-control form-control-sm" placeholder="RM" required>
+            <div class="field" style="margin: 0;">
+                <input type="number" step="0.10" name="harga" class="form-control" placeholder="RM" required>
             </div>
-            <div class="col-2">
-                <button type="submit" class="btn btn-sm btn-success w-100">+</button>
-            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Tambah</button>
         </form>
     </div>
 
-    <!-- Menu Item CRUD Management -->
-    <h6 class="fw-bold mb-2">Pengurusan Senarai Menu</h6>
+    <div class="section-heading" style="margin-bottom: 12px;">
+        <h3>Senarai menu</h3>
+    </div>
+
     {% for drink in drinks %}
-    <div class="card p-3 mb-2 shadow-sm border-0 d-flex flex-row justify-content-between align-items-center">
-        <div>
-            <span class="fw-bold d-block">{{ drink.nama_minuman }}</span>
-            <small class="text-muted">RM {{ "%.2f"|format(drink.harga) }}</small>
-            <span class="badge {% if drink.status_menu %}bg-success{% else %}bg-secondary{% endif %} ms-1">
+    <div class="panel-card" style="padding: 14px 16px;">
+        <div class="menu-row">
+            <div class="menu-name">
+                <strong>{{ drink.nama_minuman }}</strong>
+                <span class="menu-price">RM {{ "%.2f"|format(drink.harga) }}</span>
+            </div>
+
+            <span class="status-tag {% if drink.status_menu %}available{% else %}unavailable{% endif %}">
                 {% if drink.status_menu %}Ada{% else %}Habis{% endif %}
             </span>
         </div>
-        <div class="d-flex gap-1">
+
+        <div class="menu-actions" style="margin-top: 12px;">
             <form action="/admin/menu/{{ drink.id_menu }}/toggle" method="POST">
-                <button type="submit" class="btn btn-sm {% if drink.status_menu %}btn-warning{% else %}btn-info text-white{% endif %}">
-                    {% if drink.status_menu %}Set Habis{% else %}Set Ada{% endif %}
+                <button type="submit" class="btn btn-sm {% if drink.status_menu %}btn-warning{% else %}btn-info{% endif %}">
+                    {% if drink.status_menu %}Set habis{% else %}Set ada{% endif %}
                 </button>
             </form>
             <form action="/admin/menu/{{ drink.id_menu }}/delete" method="POST" onsubmit="return confirm('Padam menu ini?');">
-                <button type="submit" class="btn btn-sm btn-outline-danger">Padam</button>
+                <button type="submit" class="btn btn-sm btn-danger">Padam</button>
             </form>
         </div>
     </div>

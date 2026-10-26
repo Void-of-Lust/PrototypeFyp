@@ -1,34 +1,48 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="app-header bg-dark text-white text-center py-3">
-    <h5 class="mb-0 fw-bold">LOG MASUK STAF</h5>
+<div class="site-header">
+    <div class="site-title">
+        <span class="eyebrow">Cafe & Kitchen</span>
+        <h1 class="header-name">Log Masuk Staf</h1>
+    </div>
 </div>
 
-<div class="p-4">
-    {% if error %}
-    <div class="alert alert-danger py-2 mb-3" role="alert">
-        {{ error }}
-    </div>
-    {% endif %}
+<div class="page-body">
+    <div class="auth-card">
+        <div class="eyebrow" style="color: var(--muted); letter-spacing: 0.12em; margin-bottom: 10px;">Akses operasi</div>
+        <h1>Selamat datang</h1>
+        <p>Masukkan butiran akaun anda untuk meneruskan tugas harian.</p>
 
-    <form method="POST" action="/login">
-        <div class="mb-3">
-            <label class="form-label fw-semibold">Peranan (Role)</label>
-            <select name="role" class="form-select" required>
-                <option value="admin">Pengurus (Admin)</option>
-                <option value="dapur">Petugas Dapur</option>
-            </select>
+        {% if error %}
+        <div class="alert alert-danger py-2 mb-3" role="alert">
+            {{ error }}
         </div>
-        <div class="mb-3">
-            <label class="form-label fw-semibold">Nama Pengguna</label>
-            <input type="text" name="username" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label class="form-label fw-semibold">Kata Laluan</label>
-            <input type="password" name="password" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary w-100 py-2">Log Masuk</button>
-    </form>
+        {% endif %}
+
+        <form method="POST" action="/login">
+            <div class="select-shell">
+                <label for="role">Peranan</label>
+                <select id="role" name="role" class="form-select" required>
+                    <option value="admin">Pengurus (Admin)</option>
+                    <option value="dapur">Petugas Dapur</option>
+                </select>
+            </div>
+
+            <div class="input-shell">
+                <label for="username">Nama pengguna</label>
+                <input id="username" type="text" name="username" class="form-control" placeholder="Masukkan nama pengguna" required>
+            </div>
+
+            <div class="input-shell">
+                <label for="password">Kata laluan</label>
+                <input id="password" type="password" name="password" class="form-control" placeholder="Masukkan kata laluan" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mt-2">Log Masuk</button>
+        </form>
+
+        <div class="auth-footer">Sistem tempahan minuman untuk pelanggan, dapur, dan pengurus.</div>
+    </div>
 </div>
 {% endblock %}

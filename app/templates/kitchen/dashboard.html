@@ -1,55 +1,68 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="app-header bg-dark d-flex justify-content-between align-items-center">
-    <span>👨‍🍳 DASHBOARD DAPUR</span>
-    <a href="/kitchen/orders" class="btn btn-sm btn-outline-light">Muat Semula</a>
+<div class="site-header">
+    <div class="site-title">
+        <span class="eyebrow">Dapur</span>
+        <h1 class="header-name">Dashboard pesanan</h1>
+    </div>
+    <a href="/kitchen/orders" class="btn btn-outline btn-sm">Muat semula</a>
 </div>
 
-<div class="p-3">
-    {% for order in orders %}
-    <div class="card p-3 mb-2 border-start border-4 {% if order.status_pesanan == 'Baru' %}border-warning{% elif order.status_pesanan == 'Diproses' %}border-primary{% else %}border-success{% endif %}">
-        <div class="d-flex justify-content-between align-items-center">
-            <h6 class="fw-bold mb-0">MEJA: {{ order.pelanggan.no_meja }}</h6>
-            <small class="text-muted">{{ order.tarikh_masa.strftime('%H:%M:%S') }}</small>
-        </div>
-        <hr class="my-2">
-        <p class="mb-1"><strong>{{ order.kuantiti }}x</strong> {{ order.menu.nama_minuman }}</p>
-        {% if order.nota_tambahan %}
-        <p class="text-danger small mb-2">Nota: {{ order.nota_tambahan }}</p>
-        {% endif %}
+<div class="page-body">
+    <div class="order-list">
+        {% for order in orders %}
+        {% set status_class = 'new' if order.status_pesanan == 'Baru' else 'processing' if order.status_pesanan == 'Diproses' else 'done' %}
+        <article class="order-card {{ status_class }}">
+            <div class="order-topline">
+                <div class="order-table">Meja {{ order.pelanggan.no_meja }}</div>
+                <div class="order-time">{{ order.tarikh_masa.strftime('%H:%M:%S') }}</div>
+            </div>
 
-        <form action="/kitchen/order/{{ order.id_pesanan }}/status" method="POST" class="d-flex gap-2">
-            <button name="status" value="Diproses" class="btn btn-sm btn-primary flex-fill">Proses</button>
-            <button name="status" value="Selesai" class="btn btn-sm btn-success flex-fill">Selesai</button>
-        </form>
+            <p class="order-product"><strong>{{ order.kuantiti }}x</strong> {{ order.menu.nama_minuman }}</p>
+
+            {% if order.nota_tambahan %}
+            <p class="order-note">Nota: {{ order.nota_tambahan }}</p>
+            {% endif %}
+
+            <div class="status-actions">
+                <form action="/kitchen/order/{{ order.id_pesanan }}/status" method="POST">
+                    <button name="status" value="Diproses" class="btn btn-primary btn-sm">Proses</button>
+                </form>
+                <form action="/kitchen/order/{{ order.id_pesanan }}/status" method="POST">
+                    <button name="status" value="Selesai" class="btn btn-success btn-sm">Selesai</button>
+                </form>
+            </div>
+        </article>
+        {% else %}
+        <div class="empty-state">
+            <span class="icon">☕</span>
+            <h6>Tiada pesanan buat masa ini</h6>
+            <div>Pesanan baru dari pelanggan akan muncul di sini secara automatik.</div>
+        </div>
+        {% endfor %}
     </div>
-    {% else %}
-    <div class="text-center py-5 text-muted">
-        <div class="fs-1 mb-2">☕</div>
-        <h6>Tiada Pesanan Buat Masa Ini</h6>
-        <small>Pesanan baru dari pelanggan akan muncul di sini secara automatik.</small>
-    </div>
-    {% endfor %}
 </div>
 
 <script>
     let previousOrderCount = {{ orders|length }};
 
-    // Automatically reload kitchen orders every 5 seconds
     setInterval(function() {
         fetch('/kitchen/orders')
             .then(response => response.text())
             .then(html => {
                 const parser = new DOMParser();
                 const newDoc = parser.parseFromString(html, 'text/html');
-                const newContent = newDoc.querySelector('.p-3').innerHTML;
-                document.querySelector('.p-3').innerHTML = newContent;
+                const newContent = newDoc.querySelector('.order-list');
+                if (!newContent) return;
 
-                // Check if new cards were added and play notification sound
-                const currentCardCount = newDoc.querySelectorAll('.card').length;
+                const currentList = document.querySelector('.order-list');
+                if (currentList) currentList.innerHTML = newContent.innerHTML;
+
+                const currentCardCount = newDoc.querySelectorAll('.order-card').length;
                 if (currentCardCount > previousOrderCount) {
-                    new Audio('https://actions.google.com/sounds/v1/sounds_library/2012/ping.ogg').play().catch(() => {});
+                    const audio = new Audio('https://actions.google.com/sounds/v1/sounds_library/2012/ping.ogg');
+                    audio.play().catch(() => {});
                 }
                 previousOrderCount = currentCardCount;
             })

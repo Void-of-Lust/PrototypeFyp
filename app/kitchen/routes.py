@@ -13,7 +13,7 @@ def restrict_to_kitchen():
 def live_orders():
     # Active orders only (excluding 'Selesai') sorted by newest first
     orders = Pesanan.query.filter(Pesanan.status_pesanan != 'Selesai').order_by(Pesanan.tarikh_masa.desc()).all()
-    return render_template('kitchen/dashboard.html', orders=orders)
+    return render_template('kitchen/dashboardDapur.html', orders=orders)
 
 @kitchen_bp.route('/order/<int:order_id>/status', methods=['POST'])
 def update_status(order_id):

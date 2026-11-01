@@ -25,8 +25,9 @@ class Menu(db.Model):
     id_menu = db.Column(db.Integer, primary_key=True)
     nama_minuman = db.Column(db.String(100), nullable=False)
     harga = db.Column(db.Numeric(10, 2), nullable=False)
-    status_menu = db.Column(db.Boolean, default=True) # True = Ada, False = Habis
-    pesanan = db.relationship('Pesanan', backref='menu', lazy=True)
+    kategori = db.Column(db.String(20), nullable=False, default='Panas')  # 'Panas' or 'Sejuk'
+    status_menu = db.Column(db.Boolean, default=True)
+    pesanan = db.relationship('Pesanan', backref='menu', cascade='all, delete-orphan', lazy=True)
 
 class Pesanan(db.Model):
     __tablename__ = 'pesanan'
@@ -34,6 +35,6 @@ class Pesanan(db.Model):
     id_pelanggan = db.Column(db.Integer, db.ForeignKey('pelanggan.id_pelanggan'), nullable=False)
     id_menu = db.Column(db.Integer, db.ForeignKey('menu.id_menu'), nullable=False)
     tarikh_masa = db.Column(db.DateTime, default=datetime.utcnow)
-    status_pesanan = db.Column(db.String(20), default='Baru') # 'Baru', 'Diproses', 'Selesai'
+    status_pesanan = db.Column(db.String(20), default='Baru')
     nota_tambahan = db.Column(db.String(255), nullable=True)
     kuantiti = db.Column(db.Integer, default=1, nullable=False)

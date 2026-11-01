@@ -2,38 +2,70 @@
 
 {% block content %}
 <div class="app-header shadow-sm d-flex justify-content-between align-items-center">
-    <span>🥤 SISTEM TEMPAHAN MINUMAN</span>
+    <span>🥤 STATUS PESANAN</span>
     <span class="table-badge">MEJA: {{ table_number }}</span>
 </div>
 
-<div class="p-4 text-center">
-    <!-- Success Icon -->
-    <div class="my-4">
-        <div class="d-inline-flex align-items-center justify-content-center bg-success text-white rounded-circle shadow-sm" style="width: 80px; height: 80px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
-                <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/>
-            </svg>
+<div class="p-4">
+    <div class="text-center mb-4">
+        <h5 class="fw-bold text-dark mb-1">Ringkasan Pesanan</h5>
+        <small class="text-muted">Status pesanan dikemaskini secara langsung daripada dapur.</small>
+    </div>
+
+    <!-- Items & Live Status List -->
+    <div class="card p-3 mb-3 shadow-sm border-0">
+        <h6 class="fw-bold border-bottom pb-2 mb-3">Item Ditempah</h6>
+        <div id="orderList">
+            {% for item in orders %}
+            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                <div>
+                    <span class="fw-semibold d-block">{{ item.kuantiti }}x {{ item.menu.nama_minuman }}</span>
+                    {% if item.nota_tambahan %}
+                    <small class="text-muted">Nota: {{ item.nota_tambahan }}</small>
+                    {% endif %}
+                </div>
+                <span class="badge status-badge
+                    {% if item.status_pesanan == 'Baru' %}bg-warning text-dark
+                    {% elif item.status_pesanan == 'Diproses' %}bg-primary
+                    {% else %}bg-success{% endif %}">
+                    {{ item.status_pesanan }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-between fw-bold fs-5 mt-2 pt-2 border-top">
+            <span>Jumlah Harga:</span>
+            <span class="text-success">RM {{ "%.2f"|format(total_price) }}</span>
         </div>
     </div>
 
-    <h4 class="fw-bold text-success mb-2">Pesanan Berjaya Dihantar!</h4>
-    <p class="text-muted small mb-4">Pesanan anda telah disahkan dan sedang disediakan oleh pihak dapur.</p>
-
-    <!-- Details Card -->
-    <div class="card card-drink p-3 my-3 text-start shadow-sm border-0">
-        <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
-            <span class="fw-semibold text-secondary">Lokasi Meja:</span>
-            <span class="fw-bold text-dark">{{ table_number }}</span>
-        </div>
-        <div class="d-flex justify-content-between">
-            <span class="fw-semibold text-secondary">Status Pesanan:</span>
-            <span class="badge bg-warning text-dark px-2 py-1">Dihantar ke Dapur</span>
-        </div>
-    </div>
-
-    <!-- Return Button -->
     <a href="/menu?table={{ table_number }}" class="btn btn-custom w-100 py-2 shadow-sm text-decoration-none">
-        Tambah Pesanan Lain
+        + Tambah Pesanan Lain
     </a>
 </div>
+
+<script>
+setInterval(function() {
+    fetch('/api/status/{{ customer_id }}')
+        .then(response => response.json())
+        .then(data => {
+            const list = document.getElementById('orderList');
+            let html = '';
+            data.orders.forEach(item => {
+                let badgeClass = item.status === 'Baru' ? 'bg-warning text-dark' :
+                                (item.status === 'Diproses' ? 'bg-primary' : 'bg-success');
+                html += `
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                    <div>
+                        <span class="fw-semibold d-block">${item.kuantiti}x ${item.nama_minuman}</span>
+                    </div>
+                    <span class="badge ${badgeClass}">${item.status}</span>
+                </div>`;
+            });
+            list.innerHTML = html;
+        })
+        .catch(err => console.error('Error fetching order status:', err));
+}, 3000);
+</script>
 {% endblock %}

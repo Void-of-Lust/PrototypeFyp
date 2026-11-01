@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="app-header shadow-sm text-center py-3">
+    <h5 class="mb-0 fw-bold">SISTEM TEMPAHAN MINUMAN</h5>
+</div>
+
+<div class="p-4 text-center">
+    <div class="table-badge d-inline-block mb-4 px-3 py-2 fs-6 fw-bold">
+        NO. MEJA: {{ table_number }}
+    </div>
+
+    <p class="text-muted small mb-4">Sila pilih jenis tempahan anda:</p>
+
+    <form action="/select_type" method="POST" class="d-flex flex-column gap-3">
+        <button type="submit" name="jenis_sajian" value="Makan dan Minum" class="btn btn-outline-dark py-3 fw-bold shadow-sm">
+            MAKAN DAN MINUM
+        </button>
+        <button type="submit" name="jenis_sajian" value="Makan Sahaja" class="btn btn-outline-dark py-3 fw-bold shadow-sm">
+            MAKAN SAHAJA
+        </button>
+        <button type="submit" name="jenis_sajian" value="Minum Sahaja" class="btn btn-outline-dark py-3 fw-bold shadow-sm">
+            MINUM SAHAJA
+        </button>
+    </form>
+</div>
+{% endblock %}

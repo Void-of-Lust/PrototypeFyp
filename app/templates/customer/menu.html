@@ -7,21 +7,26 @@
 </div>
 
 <div class="p-3">
-    <div class="alert alert-info py-2" role="alert">
+    <div class="alert alert-info py-2 mb-3" role="alert">
         <strong>Peringatan:</strong> Sila pastikan nombor meja anda adalah tepat.
     </div>
 
-    <h5 class="fw-bold mb-3">Senarai Minuman</h5>
+    <!-- Category Filter Tabs -->
+    <div class="d-flex gap-2 mb-3">
+        <button type="button" class="btn btn-sm btn-dark flex-fill filter-btn active" onclick="filterCategory('all', this)">Semua</button>
+        <button type="button" class="btn btn-sm btn-outline-dark flex-fill filter-btn" onclick="filterCategory('Panas', this)">🔥 Panas</button>
+        <button type="button" class="btn btn-sm btn-outline-dark flex-fill filter-btn" onclick="filterCategory('Sejuk', this)">🧊 Sejuk</button>
+    </div>
 
     <form action="/order" method="POST" id="orderForm">
         <input type="hidden" name="table_number" value="{{ table_number }}">
 
         {% for drink in drinks %}
-        <div class="card card-drink p-3">
+        <div class="card card-drink p-3 drink-item" data-category="{{ drink.kategori }}">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <div>
                     <h6 class="fw-bold mb-0">{{ drink.nama_minuman }}</h6>
-                    <small class="text-muted">RM {{ "%.2f"|format(drink.harga) }}</small>
+                    <small class="text-muted">RM {{ "%.2f"|format(drink.harga) }} • <span class="badge bg-light text-dark border">{{ drink.kategori }}</span></small>
                 </div>
                 <div class="input-group style-select" style="width: 120px;">
                     <input type="number" class="form-control text-center quantity-input"
@@ -36,4 +41,23 @@
         <button type="submit" class="btn btn-custom w-100 py-2 mt-3 shadow-sm">HANTAR PESANAN</button>
     </form>
 </div>
+
+<script>
+function filterCategory(category, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('btn-dark', 'active');
+        b.classList.add('btn-outline-dark');
+    });
+    btn.classList.remove('btn-outline-dark');
+    btn.classList.add('btn-dark', 'active');
+
+    document.querySelectorAll('.drink-item').forEach(item => {
+        if (category === 'all' || item.dataset.category === category) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+</script>
 {% endblock %}

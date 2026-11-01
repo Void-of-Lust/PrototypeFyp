@@ -18,7 +18,7 @@ def dashboard():
     total_sales = sum(order.kuantiti * order.menu.harga for order in completed_orders if order.menu)
     total_orders = len(completed_orders)
 
-    return render_template('admin/dashboard.html', drinks=drinks, total_sales=total_sales, total_orders=total_orders)
+    return render_template('admin/dashboardAdmin.html', drinks=drinks, total_sales=total_sales, total_orders=total_orders)
 
 @admin_bp.route('/menu/add', methods=['POST'])
 def add_menu():

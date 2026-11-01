@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="app-header shadow-sm text-center py-3">
+    <h5 class="mb-0 fw-bold">GAMBAR MAKANAN</h5>
+</div>
+
+<div class="p-4 text-center">
+    <div class="border border-2 border-dashed rounded p-4 mb-4 bg-light d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;" id="uploadBox">
+        <img id="imagePreview" src="" class="img-fluid rounded mb-2 d-none" style="max-height: 180px;">
+        <div id="uploadPlaceholder">
+            <div class="fs-1 text-secondary mb-2">📷</div>
+            <span class="fw-bold text-secondary d-block">MUAT NAIK GAMBAR</span>
+            <small class="text-muted">Tangkap atau muat naik gambar makanan anda</small>
+        </div>
+    </div>
+
+    <form action="/upload_food" method="POST" enctype="multipart/form-data">
+        <input type="file" name="food_image" id="foodFileInput" accept="image/*" capture="environment" class="d-none" onchange="previewImage(this)">
+
+        <div class="row g-2 mb-4">
+            <div class="col-6">
+                <button type="button" class="btn btn-outline-secondary w-100 py-2 fw-semibold" onclick="triggerCamera()">
+                    BUKA KAMERA
+                </button>
+            </div>
+            <div class="col-6">
+                <button type="button" class="btn btn-outline-secondary w-100 py-2 fw-semibold" onclick="triggerCamera()">
+                    TAMBAH GAMBAR
+                </button>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between gap-2">
+            <a href="/" class="btn btn-secondary flex-fill py-2">Kembali</a>
+            <button type="submit" class="btn btn-dark flex-fill py-2 fw-bold">SETERUSNYA</button>
+        </div>
+    </form>
+</div>
+
+<script>
+function triggerCamera() {
+    document.getElementById('foodFileInput').click();
+}
+
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imagePreview').src = e.target.result;
+            document.getElementById('imagePreview').classList.remove('d-none');
+            document.getElementById('uploadPlaceholder').classList.add('d-none');
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}

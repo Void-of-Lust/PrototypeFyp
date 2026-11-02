@@ -44,3 +44,14 @@ def view_menu():
     current_table = session.get('table_number', 'Dine-In')
     drinks = Menu.query.filter_by(status_menu=True).all()
     return render_template('customer/menu.html', drinks=drinks, table_number=current_table)
+
+# Screen 4: Submit Order
+@customer_bp.route('/order', methods=['POST'])
+def place_order():
+    # Retrieve details from session & request form
+    table_number = session.get('table_number', 'Dine-In')
+    jenis_sajian = session.get('jenis_sajian')
+    food_image = session.get('food_image')
+
+    # Redirect to a thank you / confirmation page or clear relevant session items
+    return redirect(url_for('customer.welcome'))

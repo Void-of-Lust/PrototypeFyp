@@ -36,31 +36,6 @@
 <script>
     let previousOrderCount = {{ orders|length }};
 
-    // Automatically reload kitchen orders every 5 seconds
-    setInterval(function() {
-        fetch('/kitchen/orders')
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const newDoc = parser.parseFromString(html, 'text/html');
-                const newContent = newDoc.querySelector('.p-3').innerHTML;
-                document.querySelector('.p-3').innerHTML = newContent;
-
-                // Check if new cards were added and play notification sound
-                const currentCardCount = newDoc.querySelectorAll('.card').length;
-                if (currentCardCount > previousOrderCount) {
-                    new Audio('https://actions.google.com/sounds/v1/sounds_library/2012/ping.ogg').play().catch(() => {});
-                }
-                previousOrderCount = currentCardCount;
-            })
-            .catch(err => console.error('Error auto-refreshing orders:', err));
-    }, 5000);
-</script>
-{% endblock %}
-
-<script>
-    let previousOrderCount = {{ orders|length }};
-
     setInterval(function() {
         fetch('/kitchen/orders')
             .then(response => response.text())

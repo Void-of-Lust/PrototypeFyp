@@ -1,7 +1,7 @@
 import os
 import qrcode
 
-BASE_URL = "http://127.0.0.1:5000/menu"
+BASE_URL = "http://127.0.0.1:5000/"
 
 # Dynamically find the path of this script's directory
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))

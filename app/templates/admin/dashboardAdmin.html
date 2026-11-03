@@ -2,25 +2,25 @@
 
 {% block content %}
 <div class="app-header bg-dark text-white d-flex justify-content-between align-items-center">
-    <span>👑 Dashboard Admin</span>
+    <span class="fw-bold">Dashboard Admin</span>
     <a href="/logout" class="btn btn-sm btn-outline-light">Log out</a>
 </div>
 
 <div class="p-3">
-    <!-- Sidebar / Tab Navigation Buttons -->
+    <!-- Tab Navigation -->
     <div class="row g-2 mb-3">
         <div class="col-4">
-            <button class="btn btn-outline-dark w-100 btn-sm py-2 fw-bold active nav-tab-btn" onclick="switchTab('tab-menu', this)">
+            <button class="btn btn-dark w-100 btn-sm py-2 fw-semibold nav-tab-btn active" onclick="switchTab('tab-menu', this)">
                 Kemaskini Menu
             </button>
         </div>
         <div class="col-4">
-            <button class="btn btn-outline-dark w-100 btn-sm py-2 fw-bold nav-tab-btn" onclick="switchTab('tab-bayaran', this)">
-                Pengesahan Bayaran
+            <button class="btn btn-outline-dark w-100 btn-sm py-2 fw-semibold nav-tab-btn" onclick="switchTab('tab-bayaran', this)">
+                Status Meja
             </button>
         </div>
         <div class="col-4">
-            <button class="btn btn-outline-dark w-100 btn-sm py-2 fw-bold nav-tab-btn" onclick="switchTab('tab-laporan', this)">
+            <button class="btn btn-outline-dark w-100 btn-sm py-2 fw-semibold nav-tab-btn" onclick="switchTab('tab-laporan', this)">
                 Laporan Jualan
             </button>
         </div>
@@ -29,11 +29,10 @@
     <!-- TAB 1: KEMASKINI MENU -->
     <div id="tab-menu" class="admin-tab">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold mb-0">Senarai Menu</h6>
+            <h6 class="fw-bold mb-0">Senarai Menu Minuman</h6>
             <button class="btn btn-sm btn-success" data-bs-toggle="collapse" data-bs-target="#addMenuForm">+ Tambah Menu</button>
         </div>
 
-        <!-- Add Menu Form Collapse -->
         <div class="collapse mb-3" id="addMenuForm">
             <div class="card p-3 border-0 shadow-sm bg-light">
                 <form action="/admin/menu/add" method="POST" class="row g-2">
@@ -70,7 +69,7 @@
                 <tbody>
                     {% for drink in drinks %}
                     <tr>
-                        <td class="fw-semibold">{{ drink.nama_minuman }}</td>
+                        <td class="fw-semibold text-start ps-3">{{ drink.nama_minuman }}</td>
                         <td><span class="badge bg-secondary">{{ drink.kategori }}</span></td>
                         <td>RM {{ "%.2f"|format(drink.harga) }}</td>
                         <td>
@@ -84,7 +83,7 @@
                                     <button class="btn btn-sm btn-warning py-0 px-2">Set Status</button>
                                 </form>
                                 <form action="/admin/menu/{{ drink.id_menu }}/delete" method="POST" onsubmit="return confirm('Padam minuman ini?');">
-                                    <button class="btn btn-sm btn-danger py-0 px-2">PADAM</button>
+                                    <button class="btn btn-sm btn-outline-danger py-0 px-2">Padam</button>
                                 </form>
                             </div>
                         </td>
@@ -95,63 +94,61 @@
         </div>
     </div>
 
-    <!-- TAB 2: PENGESAHAN BAYARAN / SENARAI PESANAN -->
+    <!-- TAB 2: STATUS MEJA -->
     <div id="tab-bayaran" class="admin-tab d-none">
-        <h6 class="fw-bold mb-3">Senarai Pesanan Meja</h6>
+        <h6 class="fw-bold mb-3">Status Pesanan Meja</h6>
         <div class="row g-3">
             {% for table_name, status in table_status.items() %}
             <div class="col-4">
-                <div class="card p-3 text-center border-2 shadow-sm {% if status == 'ada' %}border-warning bg-warning-subtle{% else %}border-light bg-white{% endif %}">
+                <div class="card p-3 text-center border shadow-sm {% if status == 'ada' %}border-warning bg-warning-subtle{% else %}border-light bg-white{% endif %}">
                     <h6 class="fw-bold mb-1">Meja {{ table_name }}</h6>
-                    <small class="text-muted">status: <strong>{{ status }}</strong></small>
+                    <small class="text-muted">Status: <strong>{{ status|upper }}</strong></small>
                 </div>
             </div>
             {% endfor %}
         </div>
     </div>
 
-    <!-- TAB 3: LAPORAN JUALAN -->
+    <!-- TAB 3: LAPORAN JUALAN (DYNAMIC GRAPH) -->
     <div id="tab-laporan" class="admin-tab d-none">
-        <!-- Summary Metric Boxes -->
         <div class="row g-2 mb-3">
             <div class="col-4">
                 <div class="card p-2 text-center border-0 shadow-sm bg-white">
-                    <small class="text-muted">Jumlah jualan</small>
+                    <small class="text-muted">Jumlah Jualan</small>
                     <h6 class="fw-bold text-success mb-0">RM {{ "%.2f"|format(total_sales) }}</h6>
-                    <small class="text-muted extra-small">hari ini</small>
                 </div>
             </div>
             <div class="col-4">
                 <div class="card p-2 text-center border-0 shadow-sm bg-white">
-                    <small class="text-muted">Bil. pesanan</small>
-                    <h6 class="fw-bold text-primary mb-0">{{ total_orders }} pesanan</h6>
-                    <small class="text-muted extra-small">hari ini</small>
+                    <small class="text-muted">Pesanan</small>
+                    <h6 class="fw-bold text-primary mb-0">{{ total_orders }}</h6>
                 </div>
             </div>
             <div class="col-4">
                 <div class="card p-2 text-center border-0 shadow-sm bg-white">
-                    <small class="text-muted">Minuman terjual</small>
+                    <small class="text-muted">Terjual</small>
                     <h6 class="fw-bold text-dark mb-0">{{ total_drinks_sold }} cawan</h6>
-                    <small class="text-muted extra-small">hari ini</small>
                 </div>
             </div>
         </div>
 
-        <!-- Sales Chart Box -->
+        <!-- Dynamic Sales Bar Chart -->
         <div class="card p-3 mb-3 border-0 shadow-sm bg-white">
-            <h6 class="fw-bold mb-2">CARTA JUALAN HARIAN [RM]</h6>
-            <div class="d-flex align-items-end justify-content-between bg-light p-3 rounded" style="height: 120px;">
-                <div class="bg-dark rounded-top text-center text-white small" style="width: 12%; height: 40%;">RM40</div>
-                <div class="bg-dark rounded-top text-center text-white small" style="width: 12%; height: 65%;">RM65</div>
-                <div class="bg-dark rounded-top text-center text-white small" style="width: 12%; height: 50%;">RM50</div>
-                <div class="bg-dark rounded-top text-center text-white small" style="width: 12%; height: 85%;">RM85</div>
-                <div class="bg-dark rounded-top text-center text-white small" style="width: 12%; height: 60%;">RM60</div>
-                <div class="bg-dark rounded-top text-center text-white small" style="width: 12%; height: 100%;">RM100</div>
+            <h6 class="fw-bold mb-3">Carta Jualan 7 Hari Terakhir (RM)</h6>
+            <div class="d-flex align-items-end justify-content-between bg-light p-3 rounded" style="height: 160px;">
+                {% for item in chart_data %}
+                <div class="d-flex flex-column align-items-center" style="width: 13%;">
+                    <small class="text-muted extra-small mb-1">RM {{ "%.0f"|format(item.amount) }}</small>
+                    <div class="bg-primary rounded-top w-100" style="height: {{ item.height_pct }}%; min-height: 6px;"></div>
+                    <small class="fw-bold mt-1" style="font-size: 0.75rem;">{{ item.day_name }}</small>
+                    <small class="text-muted extra-small" style="font-size: 0.65rem;">{{ item.date_str }}</small>
+                </div>
+                {% endfor %}
             </div>
         </div>
 
-        <!-- Transaction Table -->
-        <h6 class="fw-bold mb-2">Transaksi</h6>
+        <!-- Transaction Log -->
+        <h6 class="fw-bold mb-2">Rekod Transaksi Rekod</h6>
         <div class="table-responsive bg-white rounded shadow-sm border">
             <table class="table table-sm table-striped align-middle mb-0 text-center small">
                 <thead class="table-dark">
@@ -176,7 +173,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="6" class="text-muted">Tiada rekod transaksi.</td>
+                        <td colspan="6" class="text-muted py-3">Tiada rekod transaksi.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

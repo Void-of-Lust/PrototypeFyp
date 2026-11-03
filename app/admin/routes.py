@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, session
 from app.extensions import db
 from app.models import Menu, Pesanan, Pelanggan
@@ -19,7 +20,30 @@ def dashboard():
     total_orders = len(completed_orders)
     total_drinks_sold = sum(order.kuantiti for order in completed_orders)
 
-    # Table status grid data (Meja 1 - Meja 6)
+    # Dynamic 7-Day Sales Calculation from Database
+    today = datetime.utcnow().date()
+    chart_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
+    sales_by_date = {d: 0.0 for d in chart_days}
+
+    for order in completed_orders:
+        if order.tarikh_masa and order.menu:
+            order_date = order.tarikh_masa.date()
+            if order_date in sales_by_date:
+                sales_by_date[order_date] += float(order.kuantiti * order.menu.harga)
+
+    max_sale = max(sales_by_date.values()) if sales_by_date and max(sales_by_date.values()) > 0 else 1.0
+    chart_data = []
+    for d in chart_days:
+        amount = sales_by_date[d]
+        pct = int((amount / max_sale) * 100) if max_sale > 0 else 0
+        chart_data.append({
+            'date_str': d.strftime('%d/%m'),
+            'day_name': d.strftime('%a'),
+            'amount': amount,
+            'height_pct': max(pct, 6) if amount > 0 else 6
+        })
+
+    # Table status grid data (Meja A1 - A6)
     table_list = [f"A{i}" for i in range(1, 7)]
     table_status = {}
     for t in table_list:
@@ -37,6 +61,7 @@ def dashboard():
                            total_sales=total_sales,
                            total_orders=total_orders,
                            total_drinks_sold=total_drinks_sold,
+                           chart_data=chart_data,
                            table_status=table_status,
                            transactions=transactions)
 
@@ -50,15 +75,6 @@ def add_menu():
         new_drink = Menu(nama_minuman=nama, harga=harga, kategori=kategori, status_menu=True)
         db.session.add(new_drink)
         db.session.commit()
-    return redirect(url_for('admin.dashboard'))
-
-@admin_bp.route('/menu/<int:drink_id>/edit', methods=['POST'])
-def edit_menu(drink_id):
-    drink = Menu.query.get_or_404(drink_id)
-    drink.nama_minuman = request.form.get('nama_minuman', drink.nama_minuman)
-    drink.harga = float(request.form.get('harga', drink.harga))
-    drink.kategori = request.form.get('kategori', drink.kategori)
-    db.session.commit()
     return redirect(url_for('admin.dashboard'))
 
 @admin_bp.route('/menu/<int:drink_id>/toggle', methods=['POST'])

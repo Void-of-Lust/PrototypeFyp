@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="app-header shadow-sm d-flex justify-content-between align-items-center">
-    <span>🥤 SISTEM TEMPAHAN MINUMAN</span>
+    <span>SISTEM TEMPAHAN MINUMAN</span>
     <span class="table-badge">MEJA: {{ table_number }}</span>
 </div>
 
@@ -14,8 +14,8 @@
     <!-- Category Filter Tabs -->
     <div class="d-flex gap-2 mb-3">
         <button type="button" class="btn btn-sm btn-dark flex-fill filter-btn active" onclick="filterCategory('all', this)">Semua</button>
-        <button type="button" class="btn btn-sm btn-outline-dark flex-fill filter-btn" onclick="filterCategory('Panas', this)">🔥 Panas</button>
-        <button type="button" class="btn btn-sm btn-outline-dark flex-fill filter-btn" onclick="filterCategory('Sejuk', this)">🧊 Sejuk</button>
+        <button type="button" class="btn btn-sm btn-outline-dark flex-fill filter-btn" onclick="filterCategory('Panas', this)">Panas</button>
+        <button type="button" class="btn btn-sm btn-outline-dark flex-fill filter-btn" onclick="filterCategory('Sejuk', this)">Sejuk</button>
     </div>
 
     <form action="/order" method="POST" id="orderForm">

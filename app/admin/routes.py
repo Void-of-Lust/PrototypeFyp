@@ -43,8 +43,8 @@ def dashboard():
             'height_pct': max(pct, 6) if amount > 0 else 6
         })
 
-    # Table Status & Payment Calculation (Meja A1 - A6)
-    table_list = [f"A{i}" for i in range(1, 7)]
+    # Table Status & Payment Calculation (Meja A1 - A10)
+    table_list = [f"A{i}" for i in range(1, 11)]
     table_data = []
 
     for t in table_list:

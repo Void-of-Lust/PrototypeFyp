@@ -1,5 +1,6 @@
 import os
 from flask import Blueprint, render_template, request, session, redirect, url_for, jsonify, current_app
+from werkzeug.utils import secure_filename
 from app.extensions import db
 from app.models import Menu, Pelanggan, Pesanan
 
@@ -29,9 +30,12 @@ def upload_food():
         if file and file.filename != '':
             upload_folder = os.path.join(current_app.static_folder, 'uploads')
             os.makedirs(upload_folder, exist_ok=True)
-            filepath = os.path.join(upload_folder, file.filename)
+
+            # Secure the filename before saving
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(upload_folder, filename)
             file.save(filepath)
-            session['food_image'] = file.filename
+            session['food_image'] = filename
         return redirect(url_for('customer.view_menu'))
     return render_template('customer/uploadFood.html')
 

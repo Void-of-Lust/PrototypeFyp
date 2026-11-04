@@ -1,3 +1,4 @@
+from werkzeug.security import generate_password_hash
 from app import create_app
 from app.extensions import db
 from app.models import Admin, Dapur, Menu
@@ -8,10 +9,17 @@ with app.app_context():
     db.create_all()
 
     if not Admin.query.filter_by(nama_admin="admin").first():
-        db.session.add(Admin(nama_admin="admin", kata_laluan="admin123"))
+        db.session.add(Admin(
+            nama_admin="admin",
+            kata_laluan=generate_password_hash("admin123")
+        ))
 
     if not Dapur.query.filter_by(nama_pengguna="dapur").first():
-        db.session.add(Dapur(nama_pengguna="dapur", kata_laluan="dapur123", status=True))
+        db.session.add(Dapur(
+            nama_pengguna="dapur",
+            kata_laluan=generate_password_hash("dapur123"),
+            status=True
+        ))
 
     if Menu.query.count() == 0:
         sample_drinks = [
@@ -24,4 +32,4 @@ with app.app_context():
         db.session.add_all(sample_drinks)
 
     db.session.commit()
-    print("Database updated and seeded with drink categories.")
+    print("Database updated and seeded with secure users and drink categories.")

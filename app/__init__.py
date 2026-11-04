@@ -1,11 +1,17 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session
+from werkzeug.security import check_password_hash
+from dotenv import load_dotenv
 from app.extensions import db
 from app.models import Admin, Dapur
 
+# Load environment variables from .env file
+load_dotenv()
+
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
-    app.config['SECRET_KEY'] = 'dev-secret-key-123'
+    # Use environment variable for SECRET_KEY with a fallback
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-123')
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(app.instance_path, 'database.db')}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -24,13 +30,13 @@ def create_app():
             password = request.form.get('password')
 
             if role == 'admin':
-                user = Admin.query.filter_by(nama_admin=username, kata_laluan=password).first()
-                if user:
+                user = Admin.query.filter_by(nama_admin=username).first()
+                if user and check_password_hash(user.kata_laluan, password):
                     session['user_role'] = 'admin'
                     return redirect(url_for('admin.dashboard'))
             elif role == 'dapur':
-                user = Dapur.query.filter_by(nama_pengguna=username, kata_laluan=password).first()
-                if user:
+                user = Dapur.query.filter_by(nama_pengguna=username).first()
+                if user and check_password_hash(user.kata_laluan, password):
                     session['user_role'] = 'dapur'
                     return redirect(url_for('kitchen.live_orders'))
 

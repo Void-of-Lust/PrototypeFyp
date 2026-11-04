@@ -5,7 +5,6 @@ from app.models import Menu, Pelanggan, Pesanan
 
 customer_bp = Blueprint('customer', __name__)
 
-# Screen 1: Landing Page & Dining Type Selection
 @customer_bp.route('/')
 def welcome():
     table_no = request.args.get('table')
@@ -23,7 +22,6 @@ def select_type():
         return redirect(url_for('customer.view_menu'))
     return redirect(url_for('customer.upload_food'))
 
-# Screen 2: Food Image / Camera Upload
 @customer_bp.route('/upload_food', methods=['GET', 'POST'])
 def upload_food():
     if request.method == 'POST':
@@ -37,20 +35,17 @@ def upload_food():
         return redirect(url_for('customer.view_menu'))
     return render_template('customer/uploadFood.html')
 
-# Screen 3: Drink Menu
 @customer_bp.route('/menu')
 def view_menu():
     current_table = session.get('table_number', 'Dine-In')
     drinks = Menu.query.filter_by(status_menu=True).all()
     return render_template('customer/menu.html', drinks=drinks, table_number=current_table)
 
-# Screen 4: Submit Order & Save to DB
 @customer_bp.route('/order', methods=['POST'])
 def place_order():
     table_no = session.get('table_number', 'Dine-In')
 
-    # Create Pelanggan record
-    customer = Pelanggan(no_meja=table_no)
+    customer = Pelanggan(no_meja=table_no, status_bayaran='Belum Bayar')
     db.session.add(customer)
     db.session.commit()
 
@@ -78,7 +73,6 @@ def place_order():
 
     return redirect(url_for('customer.view_menu'))
 
-# Screen 5: Live Order Status Page
 @customer_bp.route('/status/<int:customer_id>')
 def order_status(customer_id):
     customer = Pelanggan.query.get_or_404(customer_id)
@@ -91,7 +85,6 @@ def order_status(customer_id):
                            total_price=total_price,
                            customer_id=customer_id)
 
-# API Endpoint for Live Polling in success.html
 @customer_bp.route('/api/status/<int:customer_id>')
 def api_order_status(customer_id):
     orders = Pesanan.query.filter_by(id_pelanggan=customer_id).all()

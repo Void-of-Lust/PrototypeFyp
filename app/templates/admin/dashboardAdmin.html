@@ -94,16 +94,40 @@
         </div>
     </div>
 
-    <!-- TAB 2: STATUS MEJA -->
+    <!-- TAB 2: STATUS MEJA & PENGESAHAN BAYARAN -->
     <div id="tab-bayaran" class="admin-tab d-none">
-        <h6 class="fw-bold mb-3">Status Pesanan Meja</h6>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold mb-0">Status Pesanan & Pengesahan Bayaran Meja</h6>
+            <small class="text-muted">Klik kad meja untuk tukar status bayaran</small>
+        </div>
         <div class="row g-3">
-            {% for table_name, status in table_status.items() %}
+            {% for item in table_data %}
             <div class="col-4">
-                <div class="card p-3 text-center border shadow-sm {% if status == 'ada' %}border-warning bg-warning-subtle{% else %}border-light bg-white{% endif %}">
-                    <h6 class="fw-bold mb-1">Meja {{ table_name }}</h6>
-                    <small class="text-muted">Status: <strong>{{ status|upper }}</strong></small>
+                {% if item.has_orders %}
+                <form action="/admin/table/{{ item.customer_id }}/toggle_payment" method="POST">
+                    <button type="submit" class="w-100 text-start bg-transparent border-0 p-0 text-decoration-none">
+                        <div class="card p-3 text-center border shadow-sm {% if item.status_bayaran == 'Sudah Bayar' %}border-success bg-success-subtle{% else %}border-warning bg-warning-subtle{% endif %}" style="cursor: pointer;">
+                            <h6 class="fw-bold mb-1 text-dark">Meja {{ item.table_name }}</h6>
+                            <div class="my-2 py-1 bg-white rounded border">
+                                <small class="text-muted d-block extra-small">Jumlah Perlu Dibayar</small>
+                                <span class="fw-bold fs-6 text-dark">RM {{ "%.2f"|format(item.total_due) }}</span>
+                            </div>
+                            <span class="badge {% if item.status_bayaran == 'Sudah Bayar' %}bg-success{% else %}bg-danger{% endif %} py-2">
+                                {{ item.status_bayaran }}
+                            </span>
+                        </div>
+                    </button>
+                </form>
+                {% else %}
+                <div class="card p-3 text-center border border-light bg-white opacity-75">
+                    <h6 class="fw-bold mb-1 text-muted">Meja {{ item.table_name }}</h6>
+                    <div class="my-2 py-1 bg-light rounded border">
+                        <small class="text-muted d-block extra-small">Jumlah Perlu Dibayar</small>
+                        <span class="fw-bold fs-6 text-muted">RM 0.00</span>
+                    </div>
+                    <span class="badge bg-secondary py-2">Tiada Pesanan</span>
                 </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -148,7 +172,7 @@
         </div>
 
         <!-- Transaction Log -->
-        <h6 class="fw-bold mb-2">Rekod Transaksi Rekod</h6>
+        <h6 class="fw-bold mb-2">Rekod Transaksi</h6>
         <div class="table-responsive bg-white rounded shadow-sm border">
             <table class="table table-sm table-striped align-middle mb-0 text-center small">
                 <thead class="table-dark">

@@ -20,7 +20,7 @@ def dashboard():
     total_orders = len(completed_orders)
     total_drinks_sold = sum(order.kuantiti for order in completed_orders)
 
-    # Dynamic 7-Day Sales Calculation from Database
+    # Dynamic 7-Day Sales Calculation
     today = datetime.utcnow().date()
     chart_days = [today - timedelta(days=i) for i in range(6, -1, -1)]
     sales_by_date = {d: 0.0 for d in chart_days}
@@ -43,17 +43,30 @@ def dashboard():
             'height_pct': max(pct, 6) if amount > 0 else 6
         })
 
-    # Table status grid data (Meja A1 - A6)
+    # Table Status & Payment Calculation (Meja A1 - A6)
     table_list = [f"A{i}" for i in range(1, 7)]
-    table_status = {}
+    table_data = []
+
     for t in table_list:
         cust = Pelanggan.query.filter_by(no_meja=t).order_by(Pelanggan.id_pelanggan.desc()).first()
-        if cust and any(p.status_pesanan != 'Selesai' for p in cust.pesanan):
-            table_status[t] = 'ada'
+        if cust and cust.pesanan:
+            total_due = sum(p.kuantiti * p.menu.harga for p in cust.pesanan if p.menu)
+            table_data.append({
+                'table_name': t,
+                'customer_id': cust.id_pelanggan,
+                'status_bayaran': getattr(cust, 'status_bayaran', 'Belum Bayar'),
+                'total_due': float(total_due),
+                'has_orders': True
+            })
         else:
-            table_status[t] = 'tiada'
+            table_data.append({
+                'table_name': t,
+                'customer_id': None,
+                'status_bayaran': 'Tiada Pesanan',
+                'total_due': 0.0,
+                'has_orders': False
+            })
 
-    # Transaction log history
     transactions = Pesanan.query.order_by(Pesanan.tarikh_masa.desc()).limit(15).all()
 
     return render_template('admin/dashboardAdmin.html',
@@ -62,8 +75,20 @@ def dashboard():
                            total_orders=total_orders,
                            total_drinks_sold=total_drinks_sold,
                            chart_data=chart_data,
-                           table_status=table_status,
+                           table_data=table_data,
                            transactions=transactions)
+
+@admin_bp.route('/table/<int:customer_id>/toggle_payment', methods=['POST'])
+def toggle_payment(customer_id):
+    customer = Pelanggan.query.get_or_404(customer_id)
+    if customer.status_bayaran == 'Sudah Bayar':
+        customer.status_bayaran = 'Belum Bayar'
+    else:
+        customer.status_bayaran = 'Sudah Bayar'
+        for order in customer.pesanan:
+            order.status_pesanan = 'Selesai'
+    db.session.commit()
+    return redirect(url_for('admin.dashboard'))
 
 @admin_bp.route('/menu/add', methods=['POST'])
 def add_menu():

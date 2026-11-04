@@ -1,63 +1,112 @@
+
+html
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="app-header shadow-sm d-flex justify-content-between align-items-center">
-    <span>SISTEM TEMPAHAN MINUMAN</span>
-    <span class="table-badge">MEJA: {{ table_number }}</span>
+<div class="app-header shadow-sm bg-white text-dark d-flex justify-content-between align-items-center p-3 border-bottom">
+    <div class="fw-bold">LOGO</div>
+    <button type="button" class="btn btn-light position-relative" onclick="toggleCart()">
+        🛒 Troli
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartCount">0</span>
+    </button>
 </div>
 
 <div class="p-3">
-    <div class="alert alert-info py-2 mb-3" role="alert">
-        <strong>Peringatan:</strong> Sila pastikan nombor meja anda adalah tepat.
-    </div>
-
-    <!-- Category Filter Tabs -->
-    <div class="d-flex gap-2 mb-3">
-        <button type="button" class="btn btn-sm btn-dark flex-fill filter-btn active" onclick="filterCategory('all', this)">Semua</button>
-        <button type="button" class="btn btn-sm btn-outline-dark flex-fill filter-btn" onclick="filterCategory('Panas', this)">Panas</button>
-        <button type="button" class="btn btn-sm btn-outline-dark flex-fill filter-btn" onclick="filterCategory('Sejuk', this)">Sejuk</button>
-    </div>
-
     <form action="/order" method="POST" id="orderForm">
         <input type="hidden" name="table_number" value="{{ table_number }}">
 
-        {% for drink in drinks %}
-        <div class="card card-drink p-3 drink-item" data-category="{{ drink.kategori }}">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <div>
-                    <h6 class="fw-bold mb-0">{{ drink.nama_minuman }}</h6>
-                    <small class="text-muted">RM {{ "%.2f"|format(drink.harga) }} • <span class="badge bg-light text-dark border">{{ drink.kategori }}</span></small>
-                </div>
-                <div class="input-group style-select" style="width: 120px;">
-                    <input type="number" class="form-control text-center quantity-input"
-                           name="qty_{{ drink.id_menu }}" value="0" min="0" max="10">
-                </div>
+        <!-- PANDANGAN MENU -->
+        <div id="menuView">
+            <h6 class="fw-bold mb-3">KATEGORI</h6>
+            <div class="d-flex gap-2 mb-3">
+                <button type="button" class="btn btn-sm btn-outline-dark active filter-btn" onclick="filterCategory('Panas', this)">Panas</button>
+                <button type="button" class="btn btn-sm btn-outline-dark filter-btn" onclick="filterCategory('Sejuk', this)">Sejuk</button>
             </div>
-            <input type="text" class="form-control form-control-sm mt-1"
-                   name="notes_{{ drink.id_menu }}" placeholder="Nota tambahan (e.g. Kurang Manis, Ais Lebih)">
-        </div>
-        {% endfor %}
 
-        <button type="submit" class="btn btn-custom w-100 py-2 mt-3 shadow-sm">HANTAR PESANAN</button>
+            <div class="row g-2">
+                {% for drink in drinks %}
+                <div class="col-6 drink-item" data-category="{{ drink.kategori }}">
+                    <div class="card p-2 text-center shadow-sm h-100 border-0">
+                        <div class="bg-light rounded mb-2 d-flex align-items-center justify-content-center" style="height: 100px;">[ Gambar ]</div>
+                        <h6 class="fw-bold mb-0 small text-start">{{ drink.nama_minuman }}</h6>
+                        <small class="text-muted text-start d-block mb-2">RM {{ "%.2f"|format(drink.harga) }}</small>
+
+                        <div class="d-flex justify-content-between align-items-center bg-light rounded p-1 mb-2">
+                            <button type="button" class="btn btn-sm btn-secondary py-0 px-2" onclick="updateQty('{{ drink.id_menu }}', -1, {{ drink.harga }})">-</button>
+                            <span id="qty_display_{{ drink.id_menu }}" class="fw-bold">0</span>
+                            <button type="button" class="btn btn-sm btn-secondary py-0 px-2" onclick="updateQty('{{ drink.id_menu }}', 1, {{ drink.harga }})">+</button>
+                        </div>
+                        <input type="hidden" name="qty_{{ drink.id_menu }}" id="qty_input_{{ drink.id_menu }}" value="0">
+                        <input type="text" class="form-control form-control-sm mb-2" name="notes_{{ drink.id_menu }}" placeholder="Nota tambahan...">
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- PANDANGAN TROLI (Disembunyikan pada mulanya) -->
+        <div id="cartView" class="d-none">
+            <div class="d-flex align-items-center mb-4">
+                <button type="button" class="btn btn-sm btn-light me-2" onclick="toggleCart()">&lt;</button>
+                <h5 class="fw-bold mb-0">Troli anda</h5>
+            </div>
+
+            <div id="cartItemsContainer" class="mb-4">
+                <!-- Item troli akan dijana oleh JS -->
+            </div>
+
+            <div class="card p-3 border-0 shadow-sm bg-light">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="fw-semibold">Ringkasan bayaran :</span>
+                </div>
+                <div class="d-flex justify-content-between fw-bold border-top pt-2">
+                    <span>Jumlah:</span>
+                    <span id="cartTotalDisplay">RM 0.00</span>
+                </div>
+                <button type="submit" class="btn btn-secondary w-100 py-2 mt-3" id="submitBtn" disabled>Hantar Pesanan</button>
+            </div>
+        </div>
     </form>
 </div>
 
 <script>
-function filterCategory(category, btn) {
-    document.querySelectorAll('.filter-btn').forEach(b => {
-        b.classList.remove('btn-dark', 'active');
-        b.classList.add('btn-outline-dark');
-    });
-    btn.classList.remove('btn-outline-dark');
-    btn.classList.add('btn-dark', 'active');
+let cartTotal = 0;
+let totalItems = 0;
 
+function filterCategory(category, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
     document.querySelectorAll('.drink-item').forEach(item => {
-        if (category === 'all' || item.dataset.category === category) {
-            item.style.display = 'block';
-        } else {
-            item.style.display = 'none';
-        }
+        item.style.display = item.dataset.category === category ? 'block' : 'none';
     });
+}
+
+function updateQty(id, change, price) {
+    let input = document.getElementById(`qty_input_${id}`);
+    let display = document.getElementById(`qty_display_${id}`);
+    let current = parseInt(input.value);
+    let newVal = current + change;
+    if(newVal >= 0) {
+        input.value = newVal;
+        display.innerText = newVal;
+        cartTotal += (change * price);
+        totalItems += change;
+        document.getElementById('cartCount').innerText = totalItems;
+        document.getElementById('submitBtn').disabled = totalItems === 0;
+    }
+}
+
+function toggleCart() {
+    let menu = document.getElementById('menuView');
+    let cart = document.getElementById('cartView');
+    if(menu.classList.contains('d-none')) {
+        menu.classList.remove('d-none');
+        cart.classList.add('d-none');
+    } else {
+        menu.classList.add('d-none');
+        cart.classList.remove('d-none');
+        document.getElementById('cartTotalDisplay').innerText = `RM ${cartTotal.toFixed(2)}`;
+    }
 }
 </script>
 {% endblock %}

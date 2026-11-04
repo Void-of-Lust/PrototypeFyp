@@ -1,56 +1,69 @@
+html
 {% extends 'base.html' %}
 
 {% block content %}
 <div class="app-header bg-dark d-flex justify-content-between align-items-center">
     <span>DASHBOARD DAPUR</span>
-    <a href="/kitchen/orders" class="btn btn-sm btn-outline-light">Muat Semula</a>
+    <a href="/logout" class="btn btn-sm btn-outline-light">Log out</a>
 </div>
 
 <div class="p-3">
-    {% for order in orders %}
-    <div class="card p-3 mb-2 border-start border-4 {% if order.status_pesanan == 'Baru' %}border-warning{% elif order.status_pesanan == 'Diproses' %}border-primary{% else %}border-success{% endif %}">
-        <div class="d-flex justify-content-between align-items-center">
-            <h6 class="fw-bold mb-0">MEJA: {{ order.pelanggan.no_meja }}</h6>
-            <small class="text-muted">{{ order.tarikh_masa.strftime('%H:%M:%S') }}</small>
-        </div>
-        <hr class="my-2">
-        <p class="mb-1"><strong>{{ order.kuantiti }}x</strong> {{ order.menu.nama_minuman }}</p>
-        {% if order.nota_tambahan %}
-        <p class="text-danger small mb-2">Nota: {{ order.nota_tambahan }}</p>
-        {% endif %}
+    <!-- Tab Filter Dapur -->
+    <div class="d-flex gap-2 mb-3">
+        <button class="btn btn-sm btn-info flex-fill k-filter active text-white" onclick="filterKitchen('Semua', this)">Semua</button>
+        <button class="btn btn-sm btn-outline-secondary flex-fill k-filter" onclick="filterKitchen('Baru', this)">Baru</button>
+        <button class="btn btn-sm btn-outline-secondary flex-fill k-filter" onclick="filterKitchen('Diproses', this)">Diproses</button>
+        <button class="btn btn-sm btn-outline-secondary flex-fill k-filter" onclick="filterKitchen('Selesai', this)">Siap</button>
+    </div>
 
-        <form action="/kitchen/order/{{ order.id_pesanan }}/status" method="POST" class="d-flex gap-2">
-            <button name="status" value="Diproses" class="btn btn-sm btn-primary flex-fill">Proses</button>
-            <button name="status" value="Selesai" class="btn btn-sm btn-success flex-fill">Selesai</button>
-        </form>
+    <div id="kitchen-orders">
+        {% for order in orders %}
+        <div class="card p-3 mb-2 border-start border-4 order-card" data-status="{{ order.status_pesanan }}">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold mb-0 text-primary">• Meja {{ order.pelanggan.no_meja }} <span class="text-muted small">#{{ "%04d"|format(order.id_pesanan) }}</span></h6>
+                <small class="text-muted">{{ order.tarikh_masa.strftime('%H:%M') }}</small>
+            </div>
+
+            <div class="d-flex align-items-center mb-2">
+                <div class="bg-secondary rounded me-2" style="width: 40px; height: 40px;"></div> <!-- Placeholder Gambar -->
+                <div>
+                    <p class="mb-0 fw-bold">{{ order.kuantiti }} {{ order.menu.nama_minuman }}</p>
+                    {% if order.nota_tambahan %}
+                    <small class="text-warning d-block">→ {{ order.nota_tambahan }}</small>
+                    {% endif %}
+                </div>
+            </div>
+
+            <form action="/kitchen/order/{{ order.id_pesanan }}/status" method="POST" class="d-flex justify-content-end mt-2">
+                {% if order.status_pesanan == 'Baru' %}
+                <button name="status" value="Diproses" class="btn btn-sm btn-primary rounded-pill px-4">Mula Proses</button>
+                {% elif order.status_pesanan == 'Diproses' %}
+                <button name="status" value="Selesai" class="btn btn-sm btn-success rounded-pill px-4">✔️ Siap!</button>
+                {% endif %}
+            </form>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted"><h6>Tiada Pesanan</h6></div>
+        {% endfor %}
     </div>
-    {% else %}
-    <div class="text-center py-5 text-muted">
-        <h6>Tiada Pesanan Buat Masa Ini</h6>
-        <small>Pesanan baru dari pelanggan akan muncul di sini secara automatik.</small>
-    </div>
-    {% endfor %}
 </div>
 
 <script>
-    let previousOrderCount = {{ orders|length }};
+function filterKitchen(status, btn) {
+    document.querySelectorAll('.k-filter').forEach(b => {
+        b.classList.remove('btn-info', 'text-white');
+        b.classList.add('btn-outline-secondary');
+    });
+    btn.classList.remove('btn-outline-secondary');
+    btn.classList.add('btn-info', 'text-white');
 
-    setInterval(function() {
-        fetch('/kitchen/orders')
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const newDoc = parser.parseFromString(html, 'text/html');
-                const newContent = newDoc.querySelector('.p-3').innerHTML;
-                document.querySelector('.p-3').innerHTML = newContent;
-
-                const currentCardCount = newDoc.querySelectorAll('.card').length;
-                if (currentCardCount > previousOrderCount) {
-                    new Audio('https://actions.google.com/sounds/v1/sounds_library/2012/ping.ogg').play().catch(() => {});
-                }
-                previousOrderCount = currentCardCount;
-            })
-            .catch(err => console.error('Error auto-refreshing orders:', err));
-    }, 5000);
+    document.querySelectorAll('.order-card').forEach(card => {
+        if (status === 'Semua' || card.dataset.status === status) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
 </script>
 {% endblock %}

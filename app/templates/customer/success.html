@@ -1,71 +1,57 @@
+
+html
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="app-header shadow-sm d-flex justify-content-between align-items-center">
-    <span>🥤 STATUS PESANAN</span>
-    <span class="table-badge">MEJA: {{ table_number }}</span>
+<div class="app-header shadow-sm bg-white text-dark text-center p-3 border-bottom">
+    <h5 class="fw-bold mb-0">Status pesanan</h5>
 </div>
 
 <div class="p-4">
-    <div class="text-center mb-4">
-        <h5 class="fw-bold text-dark mb-1">Ringkasan Pesanan</h5>
-        <small class="text-muted">Status pesanan dikemaskini secara langsung daripada dapur.</small>
-    </div>
+    <div class="card p-3 mb-4 shadow-sm border-0 text-center">
+        <div class="mb-3">
+            <h6 class="fw-bold">⏱️ Pesanan Dihantar</h6>
+            <small class="text-muted">Pesanan anda sedang menunggu pengesahan dapur</small>
+        </div>
 
-    <!-- Items & Live Status List -->
-    <div class="card p-3 mb-3 shadow-sm border-0">
-        <h6 class="fw-bold border-bottom pb-2 mb-3">Item Ditempah</h6>
-        <div id="orderList">
-            {% for item in orders %}
-            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                <div>
-                    <span class="fw-semibold d-block">{{ item.kuantiti }}x {{ item.menu.nama_minuman }}</span>
-                    {% if item.nota_tambahan %}
-                    <small class="text-muted">Nota: {{ item.nota_tambahan }}</small>
-                    {% endif %}
-                </div>
-                <span class="badge status-badge
-                    {% if item.status_pesanan == 'Baru' %}bg-warning text-dark
-                    {% elif item.status_pesanan == 'Diproses' %}bg-primary
-                    {% else %}bg-success{% endif %}">
-                    {{ item.status_pesanan }}
-                </span>
+        <!-- Timeline Stepper -->
+        <div class="d-flex justify-content-between position-relative mt-4">
+            <div class="progress position-absolute top-50 start-0 translate-middle-y w-100" style="height: 4px; z-index: 1;">
+                <div class="progress-bar bg-dark" role="progressbar" style="width: 33%;"></div>
             </div>
-            {% endfor %}
+            <div class="bg-dark text-white rounded-circle position-relative fw-bold d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; z-index: 2;">1</div>
+            <div class="bg-light text-secondary border rounded-circle position-relative fw-bold d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; z-index: 2;">2</div>
+            <div class="bg-light text-secondary border rounded-circle position-relative fw-bold d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; z-index: 2;">3</div>
         </div>
-
-        <div class="d-flex justify-content-between fw-bold fs-5 mt-2 pt-2 border-top">
-            <span>Jumlah Harga:</span>
-            <span class="text-success">RM {{ "%.2f"|format(total_price) }}</span>
+        <div class="d-flex justify-content-between mt-2 small text-muted">
+            <span>Dihantar</span>
+            <span>Diproses</span>
+            <span>Siap!</span>
         </div>
     </div>
 
-    <a href="/menu?table={{ table_number }}" class="btn btn-custom w-100 py-2 shadow-sm text-decoration-none">
-        + Tambah Pesanan Lain
-    </a>
-</div>
+    <div class="card p-3 shadow-sm border-0 mb-4 bg-light">
+        <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+            <span class="fw-bold">Ringkasan bayaran :</span>
+            <span class="badge bg-secondary">Meja {{ table_number }}</span>
+        </div>
+        {% for item in orders %}
+        <div class="d-flex justify-content-between small mb-1">
+            <span>{{ item.kuantiti }}x {{ item.menu.nama_minuman }}</span>
+            <span>RM {{ "%.2f"|format(item.kuantiti * item.menu.harga) }}</span>
+        </div>
+        {% endfor %}
+        <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top border-dark">
+            <span>Jumlah:</span>
+            <span>RM {{ "%.2f"|format(total_price) }}</span>
+        </div>
+    </div>
 
-<script>
-setInterval(function() {
-    fetch('/api/status/{{ customer_id }}')
-        .then(response => response.json())
-        .then(data => {
-            const list = document.getElementById('orderList');
-            let html = '';
-            data.orders.forEach(item => {
-                let badgeClass = item.status === 'Baru' ? 'bg-warning text-dark' :
-                                (item.status === 'Diproses' ? 'bg-primary' : 'bg-success');
-                html += `
-                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                    <div>
-                        <span class="fw-semibold d-block">${item.kuantiti}x ${item.nama_minuman}</span>
-                    </div>
-                    <span class="badge ${badgeClass}">${item.status}</span>
-                </div>`;
-            });
-            list.innerHTML = html;
-        })
-        .catch(err => console.error('Error fetching order status:', err));
-}, 3000);
-</script>
+    <div class="d-flex gap-2">
+        <div class="card flex-fill p-2 text-center border-dark"><small>No. Pesanan</small><strong class="fs-5">#000{{ customer_id }}</strong></div>
+        <div class="card flex-fill p-2 text-center border-dark"><small>Masa</small><strong class="fs-5">{{ orders[0].tarikh_masa.strftime('%I:%M %p') if orders else '-' }}</strong></div>
+    </div>
+
+    <a href="/menu?table={{ table_number }}" class="btn btn-outline-secondary w-100 mt-4 py-2">Tambah menu</a>
+</div>
 {% endblock %}
